@@ -1,6 +1,6 @@
 # ⚠️ Run PowerShell as Administrator!
 
-Write-Host "`n🛠️ FPS Boost Script Starting..." -ForegroundColor Cyan
+Write-Host "`n🛠️ Hydra Booster Script Starting..." -ForegroundColor Cyan
 
 # Set power plan to High Performance
 powercfg -setactive SCHEME_MIN
