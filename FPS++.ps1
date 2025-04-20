@@ -23,7 +23,7 @@ Write-Host "✔️ Temp files cleaned"
 
 # Stop unnecessary background services (only safe ones)
 $services = @(
-    "SysMain",  # Superfetch (not needed for gaming)
+    "SysMain",  # Superfetch (Not needed for gaming)
     "DiagTrack",  # Connected User Experiences and Telemetry
     "WSearch"  # Windows Search
 )
