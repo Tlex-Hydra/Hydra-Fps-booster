@@ -1,5 +1,6 @@
-# Run as Administrator!
-Write-Host "🛠️ FPS Boost Script Starting..." -ForegroundColor Cyan
+# ⚠️ Run PowerShell as Administrator!
+
+Write-Host "`n🛠️ FPS Boost Script Starting..." -ForegroundColor Cyan
 
 # Set power plan to High Performance
 powercfg -setactive SCHEME_MIN
@@ -10,9 +11,18 @@ $performanceKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Visu
 Set-ItemProperty -Path $performanceKey -Name "VisualFXSetting" -Value 2
 Write-Host "✔️ Visual effects set to performance mode"
 
-# Disable Xbox Game Bar &amp; DVR (causes stutter for some users)
-Set-ItemProperty -Path "HKCU:\System\GameConfigStore" -Name "GameDVR_Enabled" -Value 0
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR" -Name "AllowGameDVR" -Value 0
+# Disable Xbox Game Bar &amp; Game DVR safely
+Write-Host "Disabling Xbox Game Bar and Game DVR..."
+
+# Disable Game DVR for current user
+Set-ItemProperty -Path "HKCU:\System\GameConfigStore" -Name "GameDVR_Enabled" -Value 0 -ErrorAction SilentlyContinue
+
+# Ensure policy path exists and disable DVR
+$policyPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows"
+If (-not (Test-Path "$policyPath\GameDVR")) {
+    New-Item -Path $policyPath -Name "GameDVR" -Force | Out-Null
+}
+Set-ItemProperty -Path "$policyPath\GameDVR" -Name "AllowGameDVR" -Value 0
 Write-Host "✔️ Game DVR and Xbox Game Bar disabled"
 
 # Clean temp files
@@ -21,16 +31,22 @@ Remove-Item "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item "C:\Windows\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
 Write-Host "✔️ Temp files cleaned"
 
-# Stop unnecessary background services (only safe ones)
+# Stop unnecessary services
+Write-Host "Disabling unnecessary services..."
 $services = @(
-    "SysMain",  # Superfetch (Not needed for gaming)
-    "DiagTrack",  # Connected User Experiences and Telemetry
-    "WSearch"  # Windows Search
+    "SysMain",     # Superfetch
+    "DiagTrack",   # Telemetry
+    "WSearch"      # Windows Search
 )
-foreach ($service in $services) {
-    Stop-Service -Name $service -Force -ErrorAction SilentlyContinue
-    Set-Service -Name $service -StartupType Disabled
-    Write-Host "✔️ Service $service disabled"
+
+foreach ($Service in $services) {
+    If (Get-Service -Name $service -ErrorAction SilentlyContinue) {
+        Stop-Service -Name $service -Force -ErrorAction SilentlyContinue
+        Set-Service -Name $service -StartupType Disabled
+        Write-Host "✔️ Disabled service: $Service"
+    } else {
+        Write-Host "ℹ️ Service not found: $Service"
+    }
 }
 
-Write-Host "`n🎮 All tweaks applied! Reboot your PC for best results." -ForegroundColor Green
+Write-Host "`n🎮 FPS Boost Complete! Please restart your PC for best results." -ForegroundColor Green
